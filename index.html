@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Birthday Surprise</title>
+<style>
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #04121f;
+    color: white;
+    text-align: center;
+    overflow-x: hidden;
+  }
+
+  h1 {
+    margin-top: 20px;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+  }
+
+  .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .cake-area {
+    background: linear-gradient(180deg, #071a2b, #071427);
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    max-width: 420px;
+    width: 100%;
+  }
+
+  .cake {
+    cursor: pointer;
+    display: inline-block;
+    max-width: 100%;
+  }
+
+  .wish {
+    font-size: clamp(1.4rem, 4vw, 2.5rem);
+    font-weight: bold;
+    margin-top: 20px;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 1s ease;
+  }
+  .wish.show {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .gallery {
+    background: linear-gradient(180deg, #071427, #051021);
+    padding: 14px;
+    border-radius: 12px;
+    max-width: 800px;
+    width: 100%;
+    margin-top: 20px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 1s ease;
+  }
+  .gallery.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .photos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+  }
+  .photos img {
+    width: 100%;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    object-fit: cover;
+    aspect-ratio: 1 / 1;
+  }
+  .photos img:hover {
+    transform: scale(1.05);
+  }
+
+  /* Lightbox */
+  .lightbox {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.25s;
+  }
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  .lightbox:target {
+    display: flex;
+  }
+  .lightbox-content {
+    position: relative;
+    max-width: 94vw;
+    max-height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .lightbox img {
+    max-width: 90vw;
+    max-height: 80vh;
+    border-radius: 8px;
+    box-shadow: 0 2px 24px #222;
+    background: #fff;
+    margin: 0;
+    display: block;
+  }
+  .close-btn {
+    position: absolute;
+    top: -32px;
+    right: 0;
+    color: white;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    text-decoration: none;
+    font-size: 2.2rem;
+    font-weight: 900;
+    line-height: 1;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0.90;
+    z-index: 10;
+    transition: background 0.15s, opacity 0.15s;
+  }
+  .close-btn:hover {
+    background: rgba(0, 0, 0, 1);
+    opacity: 1;
+  }
+
+  /* Confetti canvas */
+  canvas#confetti {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 1000;
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <!-- Cake -->
+    <div class="cake-area">
+      <svg class="cake" width="200" height="240" viewBox="0 0 200 240">
+        <rect x="30" y="120" width="140" height="70" rx="15" fill="#ffb6c1" stroke="#e75480" stroke-width="2" />
+        <rect x="40" y="85" width="120" height="45" rx="12" fill="#ffc0cb" stroke="#e75480" stroke-width="2" />
+        <rect x="50" y="55" width="100" height="35" rx="10" fill="#ffe4e1" stroke="#e75480" stroke-width="2" />
+        <path
+          d="M30 120 Q40 105 50 120 T70 120 Q80 105 90 120 T110 120 Q120 105 130 120 T150 120 Q160 105 170 120"
+          fill="#ff69b4"
+          stroke="#e75480"
+          stroke-width="2"
+        />
+        <g id="candles">
+          <rect x="60" y="20" width="8" height="35" fill="#fff" />
+          <rect x="80" y="20" width="8" height="35" fill="#fff" />
+          <rect x="100" y="20" width="8" height="35" fill="#fff" />
+          <rect x="120" y="20" width="8" height="35" fill="#fff" />
+          <rect x="140" y="20" width="8" height="35" fill="#fff" />
+        </g>
+        <g id="flames" fill="orange">
+          <path d="M64 10 Q60 20 68 20 Z" />
+          <path d="M84 10 Q80 20 88 20 Z" />
+          <path d="M104 10 Q100 20 108 20 Z" />
+          <path d="M124 10 Q120 20 128 20 Z" />
+          <path d="M144 10 Q140 20 148 20 Z" />
+        </g>
+      </svg>
+    </div>
+
+    <div class="wish" id="wishText">
+      🎉 Happy Birthday! 🎉<br />
+      Wishing you a day full of love, laughter & joy 🎂
+    </div>
+
+    <div class="gallery" id="memories">
+      <h2>📸 Memories</h2>
+      <div class="photos">
+        <a href="#img1"><img src="image1.jpeg" alt="Memory 1" /></a>
+        <a href="#img2"><img src="image2.jpeg" alt="Memory 2" /></a>
+        <a href="#img3"><img src="image3.jpeg" alt="Memory 3" /></a>
+        <a href="#img4"><img src="image4.jpeg" alt="Memory 4" /></a>
+        <a href="#img5"><img src="image5.jpeg" alt="Memory 5" /></a>
+        <a href="#img6"><img src="image6.jpeg" alt="Memory 6" /></a>
+        <a href="#img7"><img src="image7.jpeg" alt="Memory 7" /></a>
+        <a href="#img8"><img src="image8.jpeg" alt="Memory 8" /></a>
+        <a href="#img9"><img src="image9.jpeg" alt="Memory 9" /></a>
+        <a href="#img10"><img src="image10.jpeg" alt="Memory 10" /></a>
+        <a href="#img11"><img src="image11.jpeg" alt="Memory 11" /></a>
+        <a href="#img12"><img src="image12.jpeg" alt="Memory 12" /></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightboxes for 12 images -->
+  <div id="img1" class="lightbox">
+    <div class="lightbox-content">
+      <a href="#" class="close-btn" title="Close">&times;</a>
+      <img src="image1.jpeg" alt="Large Memory 1" />
+    </div>
+  </div>
+  <div id="img2" class="lightbox">
+    <div class="lightbox-content">
+      <a href="#" class="close-btn" title="Close">&times;</a>
+      <img src="image2.jpeg" alt="Large Memory 2" />
+    </div>
+  </div>
+  <div id="img3" class="lightbox">
+    <div class="lightbox-content">
+      <a href="#" class="close-btn" title="Close">&times;</a>
+      <img src="image3.jpeg" alt="Large Memory 3" />
+    </div>
+  </div>
+  <div id="img4" class="lightbox">
+    <div class="lightbox-content">
+      <a href="#" class="close-btn" title="Close">&times;</a>
+      <img src="image4.jpeg" alt="Large Memory 4" />
+    </div>
+  </div>
+  <div id="img5" class="lightbox">
+    <div class="lightbox-content">
+      <a href="#" class="close-btn" title="Close">&times;</a>
+      <img src="image5.jpeg" alt="Large Memory 5" />
+    </div>
+  </div>
+  <div id="img6" class="lightbox">
+    <div class="lightbox-content">
+      <a href="#" class="close-btn" title="Close">&times;</a>
+      <img src="image6.jpeg" alt="Large Memory 6" />
+    </div>
+  </div>
+  <div id="img7" class="lightbox">
+    <div class="lightbox-content">
+      <a href="#" class="close-btn" title="Close">&times;</a>
+      <img src="image7.jpeg" alt="Large Memory 7" />
+    </div>
+  </div>
+  <div id="img8" class="lightbox">
+    <div class="lightbox-content">
+      <a href="#" class="close-btn" title="Close">&times;</a>
+      <img src="image8.jpeg" alt="Large Memory 8" />
+    </div>
+  </div>
+  <div id="img9" class="lightbox">
+    <div class="lightbox-content">
+      <a href="#" class="close-btn" title="Close">&times;</a>
+      <img src="image9.jpeg" alt="Large Memory 9" />
+    </div>
+  </div>
+  <div id="img10" class="lightbox">
+    <div class="lightbox-content">
+      <a href="#" class="close-btn" title="Close">&times;</a>
+      <img src="image10.jpeg" alt="Large Memory 10" />
+    </div>
+  </div>
+  <div id="img11" class="lightbox">
+    <div class="lightbox-content">
+      <a href="#" class="close-btn" title="Close">&times;</a>
+      <img src="image11.jpeg" alt="Large Memory 11" />
+    </div>
+  </div>
+  <div id="img12" class="lightbox">
+    <div class="lightbox-content">
+      <a href="#" class="close-btn" title="Close">&times;</a>
+      <img src="image12.jpeg" alt="Large Memory 12" />
+    </div>
+  </div>
+
+  <canvas id="confetti"></canvas>
+  <script>
+    const cake = document.querySelector('.cake');
+    const flames = document.getElementById('flames');
+    const wishText = document.getElementById('wishText');
+    const memories = document.getElementById('memories');
+    let candleLit = true;
+
+    let flickerInterval = setInterval(() => {
+      flames.querySelectorAll('path').forEach((f) => {
+        let flickerSize = Math.random() * 3 - 1.5;
+        f.setAttribute('transform', translate(0,${flickerSize}));
+      });
+    }, 150);
+
+    cake.addEventListener('click', () => {
+      if (candleLit) {
+        flames.style.display = 'none';
+        candleLit = false;
+        clearInterval(flickerInterval);
+        startConfetti();
+        setTimeout(() => {
+          wishText.classList.add('show');
+        }, 500);
+        setTimeout(() => {
+          memories.classList.add('show');
+          stopConfetti();
+        }, 2000);
+      }
+    });
+
+    // Confetti effect
+    const confettiCanvas = document.getElementById('confetti');
+    const ctx = confettiCanvas.getContext('2d');
+    let confettiPieces = [];
+    function resizeCanvas() {
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function startConfetti() {
+      confettiPieces = [];
+      for (let i = 0; i < 150; i++) {
+        confettiPieces.push({
+          x: Math.random() * confettiCanvas.width,
+          y: Math.random() * confettiCanvas.height - confettiCanvas.height,
+          r: Math.random() * 6 + 4,
+          d: Math.random() * 10 + 10,
+          color: hsl(${Math.random() * 360},100%,50%),
+        });
+      }
+      requestAnimationFrame(drawConfetti);
+    }
+
+    function drawConfetti() {
+      ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      confettiPieces.forEach((p) => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, false);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+      });
+      updateConfetti();
+      if (confettiPieces.length > 0) {
+        requestAnimationFrame(drawConfetti);
+      }
+    }
+
+    function updateConfetti() {
+      confettiPieces.forEach((p) => {
+        p.y += Math.cos(p.d) + 1 + p.r / 2;
+        p.x += Math.sin(0.5);
+        if (p.y > confettiCanvas.height) {
+          p.y = -10;
+          p.x = Math.random() * confettiCanvas.width;
+        }
+      });
+    }
+
+    function stopConfetti() {
+      confettiPieces = [];
+    }
+
+    // Lightbox - Close when clicking outside image
+    document.querySelectorAll('.lightbox').forEach((lb) => {
+      lb.addEventListener('click', function (e) {
+        if (e.target === lb) {
+          window.location.hash = '';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
