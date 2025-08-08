@@ -307,7 +307,7 @@
     let flickerInterval = setInterval(() => {
       flames.querySelectorAll('path').forEach((f) => {
         let flickerSize = Math.random() * 3 - 1.5;
-        f.setAttribute('transform', translate(0,${flickerSize}));
+       f.setAttribute('transform', `translate(0,${flickerSize})`);
       });
     }, 150);
 
@@ -346,7 +346,7 @@
           y: Math.random() * confettiCanvas.height - confettiCanvas.height,
           r: Math.random() * 6 + 4,
           d: Math.random() * 10 + 10,
-          color: hsl(${Math.random() * 360},100%,50%),
+         color: `hsl(${Math.random() * 360},100%,50%)`,
         });
       }
       requestAnimationFrame(drawConfetti);
